@@ -15935,7 +15935,7 @@ const supportedSchemas = new Set(['data:', 'http:', 'https:']);
  * @param   {*} [options_] - Fetch options
  * @return  {Promise<import('./response').default>}
  */
-async function fetch(url, options_) {
+async function src_fetch(url, options_) {
 	return new Promise((resolve, reject) => {
 		// Build request object
 		const request = new Request(url, options_);
@@ -16123,7 +16123,7 @@ async function fetch(url, options_) {
 						}
 
 						// HTTP-redirect fetch step 15
-						resolve(fetch(new Request(locationURL, requestOptions)));
+						resolve(src_fetch(new Request(locationURL, requestOptions)));
 						finalize();
 						return;
 					}
@@ -16308,7 +16308,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(7147);
-;// CONCATENATED MODULE: ./lib/chrome_webstore.js
+;// CONCATENATED MODULE: ./node_modules/webextension-store/dist/chrome_webstore.js
 
 
 /**
@@ -16349,7 +16349,7 @@ class ChromeWebStore {
         else {
             readStream = file;
         }
-        const resp = await fetch(`${this.rootURL}/upload/chromewebstore/v1.1/items/${this.extensionId}`, {
+        const resp = await src_fetch(`${this.rootURL}/upload/chromewebstore/v1.1/items/${this.extensionId}`, {
             method: "PUT",
             headers: hdr,
             body: readStream
@@ -16366,7 +16366,7 @@ class ChromeWebStore {
      * @param target Target group
      */
     async publish(target = "default") {
-        const response = await fetch(`${this.rootURL}/chromewebstore/v1.1/items/` +
+        const response = await src_fetch(`${this.rootURL}/chromewebstore/v1.1/items/` +
             `${this.extensionId}/publish?publishTarget=${target}`, {
             method: "POST",
             headers: await this.setHeaders()
@@ -16384,7 +16384,7 @@ class ChromeWebStore {
      */
     async get(projection = "DRAFT") {
         const hdr = await this.setHeaders();
-        const res = await fetch(`${this.rootURL}/chromewebstore/v1.1/items/` +
+        const res = await src_fetch(`${this.rootURL}/chromewebstore/v1.1/items/` +
             `${this.extensionId}?projection=${projection}`, {
             method: "GET",
             headers: hdr
@@ -16414,7 +16414,7 @@ class ChromeWebStore {
         if (this.clientSecret) {
             json.client_secret = this.clientSecret;
         }
-        const response = await fetch(refreshTokenURI, { method: "POST", body: JSON.stringify(json) });
+        const response = await src_fetch(refreshTokenURI, { method: "POST", body: JSON.stringify(json) });
         const resp_body = await response.json();
         this.token = resp_body.access_token;
         return this.token;
@@ -16432,42 +16432,11 @@ class ChromeWebStore {
     }
 }
 
-;// CONCATENATED MODULE: ./lib/get_inputs.js
-
-/**
- * Gets input for this action from Actions API
- */
-function getWebStoreInputs() {
-    let inp = {};
-    const chrome_id = core.getInput("chrome_extension_id");
-    if (chrome_id) {
-        inp.chrome = {
-            extensionId: chrome_id,
-            clientId: core.getInput("client_id", { required: true }),
-            refreshToken: core.getInput("refresh_token", { required: true }),
-            clientSecret: core.getInput("client_secret", { required: true }),
-            file: core.getInput("file", { required: true }),
-            publish: core.getBooleanInput("publish")
-        };
-    }
-    const ff_id = core.getInput("firefox_extension_id");
-    if (ff_id) {
-        inp.firefox = {
-            extensionId: ff_id,
-            apiKey: core.getInput("api_key"),
-            apiSecret: core.getInput("api_secret"),
-            file: core.getInput("file"),
-            srcFile: core.getInput("src_file")
-        };
-    }
-    return inp;
-}
-
 // EXTERNAL MODULE: ./node_modules/jsonwebtoken/index.js
 var jsonwebtoken = __nccwpck_require__(7486);
 // EXTERNAL MODULE: ./node_modules/form-data/lib/form_data.js
 var form_data = __nccwpck_require__(4334);
-;// CONCATENATED MODULE: ./lib/mozilla_webstore.js
+;// CONCATENATED MODULE: ./node_modules/webextension-store/dist/mozilla_webstore.js
 
 
 
@@ -16495,9 +16464,9 @@ class MozillaWebStore {
      * @param wait Wait for file to finish processing
      */
     async uploadPackage(file, channel = "listed", wait = true) {
-        const formData = new form_data();
+        const formData = new FormData();
         if (typeof file === "string") {
-            formData.append("upload", external_fs_.createReadStream(file));
+            formData.append("upload", fs.createReadStream(file));
         }
         else {
             formData.append("upload", file);
@@ -16562,9 +16531,9 @@ class MozillaWebStore {
      * @param srcfile (Optional) srcfile
      */
     async createNewVersion(uuid, srcfile) {
-        const formData = new form_data();
+        const formData = new FormData();
         if (srcfile && typeof (srcfile) === "string") {
-            formData.append("source", external_fs_.createReadStream(srcfile));
+            formData.append("source", fs.createReadStream(srcfile));
         }
         else if (srcfile) {
             formData.append("source", srcfile);
@@ -16597,7 +16566,7 @@ class MozillaWebStore {
             iat: issuedAt,
             exp: issuedAt + 60
         };
-        return jsonwebtoken.sign(payload, this.apiSecret, {
+        return jwt.sign(payload, this.apiSecret, {
             algorithm: "HS256" // HMAC-SHA256 signing algorithm
         });
     }
@@ -16613,8 +16582,29 @@ class MozillaWebStore {
     }
 }
 
-;// CONCATENATED MODULE: ./lib/main.js
+;// CONCATENATED MODULE: ./node_modules/webextension-store/dist/index.js
 
+
+
+
+;// CONCATENATED MODULE: ./lib/get_inputs.js
+
+/**
+ * Gets input for this action from Actions API
+ */
+function getWebStoreInputs() {
+    const inp = {
+        extensionId: core.getInput("chrome_extension_id", { required: true }),
+        clientId: core.getInput("client_id", { required: true }),
+        refreshToken: core.getInput("refresh_token", { required: true }),
+        clientSecret: core.getInput("client_secret", { required: true }),
+        file: core.getInput("file", { required: true }),
+        publish: core.getBooleanInput("publish")
+    };
+    return inp;
+}
+
+;// CONCATENATED MODULE: ./lib/main.js
 
 
 
@@ -16639,41 +16629,16 @@ async function runChrome(inp) {
     }
 }
 /**
- * Runs the Firefox store logic
- * @param inp
- */
-async function runFirefox(inp) {
-    try {
-        core.info(`Uploading Firefox extension ${inp.extensionId}...`);
-        const store = new MozillaWebStore(inp.extensionId, inp.apiKey, inp.apiSecret);
-        const ff_res = await store.uploadPackage(inp.file);
-        core.info(JSON.stringify(ff_res));
-        const new_res = await store.createNewVersion(ff_res.uuid, inp.srcFile);
-        core.info(JSON.stringify(new_res));
-    }
-    catch (error) {
-        if (error instanceof Error)
-            core.setFailed(error.message);
-    }
-}
-/**
  * Run all
  */
 async function run() {
+    if (core.getInput("test")) {
+        core.info("Skipping workflow due to test flag");
+        return;
+    }
     core.info("Running webstore upload workflow.");
     const inputs = getWebStoreInputs();
-    if (inputs.chrome) {
-        await runChrome(inputs.chrome);
-    }
-    else {
-        core.info("No Chrome extension ID specified, skipping Chrome...");
-    }
-    if (inputs.firefox) {
-        await runFirefox(inputs.firefox);
-    }
-    else {
-        core.info("No Firefox extension ID specified, skipping Firefox...");
-    }
+    await runChrome(inputs);
 }
 run().then();
 

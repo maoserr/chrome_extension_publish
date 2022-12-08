@@ -1,10 +1,8 @@
 # Webextension Publish
 
-This GitHub action published web extensions to Chrome and Firefox web stores.
+This GitHub action published web extensions to Chrome web stores.
 
-Use `maoserr/gitaction_webextension_publish/firefox` for Firefox
-
-Use `maoserr/gitaction_webextension_publish/chrome` for Chrome
+Use `maoserr/chrome_extension_publish` for Chrome
 
 To generate zip you can use the GitHub bash action definition below:
 
@@ -58,26 +56,4 @@ redirect_uri=http://127.0.0.1:9004&
 grant_type=authorization_code
 ```
 
-
-## Firefox setup
-
-Required Parameters:
- - firefox_extension_id: Your extension ID
- - api_key: See below (also known as JWT issuer)
- - api_secret: See below (also known as JWT secret)
- - file: Extension zip file
-
-Optional parameters:
- - src_file: File containing src
-
-Note: you can generate src file easily with 
-
-```bash
-git archive --format zip --output src.zip develop
-```
-
-
-Follow this link to set up your access tokens:
-
-https://addons.mozilla.org/en-US/developers/addon/api/key/
 
