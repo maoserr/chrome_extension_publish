@@ -12,6 +12,8 @@ To generate zip you can use the GitHub bash action definition below:
         working-directory: dist/chrome_prod
 ```
 
+See full example: https://github.com/maoserr/epublifier/blob/develop/.github/workflows/build.yml
+
 ## Chrome Setup
 
 Required parameters:
