@@ -23,7 +23,7 @@ inputs:
     description: 'Publish extension after upload'
 runs:
   using: 'node16'
-  main: '../dist/index.js'
+  main: './dist/index.js'
 branding:
   icon: 'bookmark'
   color: 'blue'
