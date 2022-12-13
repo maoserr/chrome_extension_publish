@@ -16541,6 +16541,7 @@ class MozillaWebStore {
         else {
             formData.append("source", "");
         }
+        formData.append("upload", uuid);
         const hdr = await this.setHeaders();
         const res = await fetch(`${this.rootURL}/api/v5/addons/addon/${this.extensionId}/versions/`, {
             method: "POST",
